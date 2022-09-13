@@ -74,8 +74,10 @@ setpdy.sh
 ###############################################
 
 # COMIN for gfs, nam and arch
-export namvitdir=$(compath.py ${envir}/nam/${nam_ver})
-export gfsvitdir=$(compath.py ${envir}/gfs/${gfs_ver})
+#export namvitdir=$(compath.py ${envir}/nam/${nam_ver})
+export namvitdir=${namvitdir:-$(compath.py ${envir}/nam/${nam_ver})}
+#export gfsvitdir=$(compath.py ${envir}/gfs/${gfs_ver})
+export gfsvitdir=${gfsvitdir:-$(compath.py ${envir}/gfs/${gfs_ver})}
 export archsyndir=${archsyndir:-$(compath.py ${envir}/gfs/${gfs_ver}/syndat)}
 # Input and output
 export COMGLTRK=${COMGLTRK:-$(compath.py -o ${NET}/${gentracks_ver}/${NET})}
@@ -147,9 +149,50 @@ export CYL=${CYL:-$cyc}
 export init_flag=no
 for reg in $region
 do
+if [ "${RUN}" = "fens" ]; then
+if [ -e ${DATA}/missing_fnmoc_files ]; then
+  rm -rf ${DATA}/missing_fnmoc_files
+fi
+elif [ "${RUN}" = "navgem" ]; then
+if [ -e ${DATA}/missing_navgem_files ]; then
+  rm -rf ${DATA}/missing_navgem_files
+fi
+
+fi
   if [ $DO_TRACKER = YES ]
   then
-     $HOMEtracker/scripts/exgenesis_tracker_poe.sh $PDY $CYL $cmodel $reg $init_flag
+  $HOMEtracker/scripts/exgenesis_tracker_poe.sh $PDY $CYL $cmodel $reg $init_flag
+  
+  if [ "${RUN}" = "fens" ]; then 
+    if [ -e ${DATA}/missing_fnmoc_files ]; then
+      cat ${DATA}/missing_fnmoc_files
+      echo "................................................." 					>> ${DATA}/missing_fnmoc_files
+      echo "This may be a short list of files missing for jgentracks_fens_${CYC}" 		>> ${DATA}/missing_fnmoc_files
+      echo "jgentracks_fens_${CYC} will be allowed to complete" 				>> ${DATA}/missing_fnmoc_files
+      echo "Run: ls ${COMIN}/ENSEMBLE.MET.fcst_et*${CYC} | wc -l" 				>> ${DATA}/missing_fnmoc_files
+      echo "There should be 1,365 files per cycle (00 and 12Z)" 				>> ${DATA}/missing_fnmoc_files
+      echo "Wait for files to arrive for rerun or contact Dataflow if files never arrive" 	>> ${DATA}/missing_fnmoc_files
+      cat ${DATA}/missing_fnmoc_files | mail.py -s "fnmoc outage for gentracks_fens" "nco.spa@noaa.gov" -v
+      break
+    else
+      echo "continue to next region or complete if reg=2"
+    fi
+  fi
+  if [ "${RUN}" = "navgem" ]; then
+    if [ -e ${DATA}/missing_navgem_files ]; then
+      cat ${DATA}/missing_navgem_files
+      echo "................................................."                              >> ${DATA}/missing_navgem_files
+      echo "At least 1 NAVGEM file missing for jgentracks_navgem_${CYC}" 	            >> ${DATA}/missing_navgem_files
+      echo "jgentracks_nvgm_${CYC} will be allowed to complete"                             >> ${DATA}/missing_navgem_files
+      echo "Run: ls ${COMIN}/US058GMET-OPSbd2.NAVGEM*${CYC}-NOAA* | wc -l"    		    >> ${DATA}/missing_navgem_files
+      echo "There should be 105 files per cycle (00 and 12Z)"                               >> ${DATA}/missing_navgem_files
+      echo "Wait for files to arrive for rerun or contact Dataflow if files never arrive"   >> ${DATA}/missing_navgem_files
+      cat ${DATA}/missing_navgem_files | mail.py -s "navgem outage for gentracks_navgem" "nco.spa@noaa.gov" -v
+      break
+    else
+      echo "continue to next region or complete if reg=2"
+    fi
+  fi
   fi
 done
 

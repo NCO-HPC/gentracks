@@ -308,9 +308,8 @@ rm -rf poe_ens
 
 for pert in ${pertstring}
 do
-
-   # Create the poe script for each member
-echo " ./genesis_gettrk_poe.sh $pert" >>poe_ens
+  # Create the poe script for each member
+  echo " ./genesis_gettrk_poe.sh $pert" >>poe_ens
 done
 
 mv poe_ens cmdfile
@@ -324,6 +323,24 @@ cat cmdfile
 
 # Execute the poe
 $APRUN cmdfile
+
+if [ "${RUN}" = "fens" ]; then
+if [ -e ${DATA}/missing_fnmoc_files ]; then
+  echo "${DATA}/missing_fnmoc_files exists, exiting"
+  exit
+else
+  echo "no ${DATA}/missing_fnmoc_files exists, continue"
+fi
+fi
+
+if [ "${RUN}" = "navgem" ]; then
+if [ -e ${DATA}/missing_navgem_files ]; then
+  echo "${DATA}/missing_navgem_files exists, exiting"
+  exit
+else
+  echo "no ${DATA}/missing_navgem_files exists, continue"
+fi
+fi
 
 #export err=$?; err_chk
 

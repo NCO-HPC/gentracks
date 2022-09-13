@@ -33,7 +33,6 @@ export NETIN=dcom
 export RUN=fens
 export cyc=%CYC%
 
-
 ${HOMEgentracks}/jobs/JTRACKER
 
 if [ $? -ne 0 ]; then

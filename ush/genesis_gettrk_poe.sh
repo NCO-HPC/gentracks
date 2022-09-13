@@ -2208,21 +2208,28 @@ fi
     else  ## gribver = 2
 
       gfile=${nvgmdir}/${nvgmgfile}${fhour}-${PDY}${CYL}-NOAA-halfdeg.gr2
-      $WGRIB2 -s $gfile >nvgm.ix
-      if [ ! -s ${gfile} ]; then
-         set +x
-         echo " "
-         echo " !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-         echo " !!! NAVGEM File missing: ${gfile}"
-         echo " !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-         echo " "
-         echo " !!! Please re-run the job when NAVGEM file is available ..... "
-         echo " "
-         missing_file_cnt=$(($missing_file_cnt+1))
-         #err_exit " FAILED ${jobid} - MISSING NAVGEM FILE IN TRACKER SCRIPT - ABNORMAL EXIT"
-         exit 0
-         set -x
+      if [ ! -e ${gfile} ]; then
+       echo "NAVGEM File Missing: ${gfile}" >> ${DATA}/missing_navgem_files
+       exit
+      else
+         echo "${gfile} found continue"
       fi
+      
+      $WGRIB2 -s $gfile >nvgm.ix
+#      if [ ! -s ${gfile} ]; then
+#         set +x
+#         echo " "
+#         echo " !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+#         echo " !!! NAVGEM File missing: ${gfile}"
+#         echo " !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+#         echo " "
+#         echo " !!! Please re-run the job when NAVGEM file is available ..... "
+#         echo " "
+#         missing_file_cnt=$(($missing_file_cnt+1))
+#         #err_exit " FAILED ${jobid} - MISSING NAVGEM FILE IN TRACKER SCRIPT - ABNORMAL EXIT"
+#         exit 0
+#         set -x
+#      fi
 
         for parm in ${wgrib_parmlist}
         do
@@ -2281,7 +2288,7 @@ then
         continue
       fi
 
-           if [ ${gribver} -eq 1 ]; then
+    if [ ${gribver} -eq 1 ]; then
       fensfile=${fensdir}/fnmoc_ge${pert}.t${CYL}z.pgrbaf${fhr}
 
       if [ ! -s ${fensfile} ]
@@ -2316,8 +2323,14 @@ then
     else
 
          fensfile=${fensdir}/ENSEMBLE.MET.fcst_et0${pert_num}.${fhr}.${PDY}${CYL}
-         $WGRIB2 -s $fensfile >fens.ix
+	 if [ ! -e ${fensfile} ]; then
+	  echo "FNMOC ENS File Missing: ${fensfile}" >> ${DATA}/missing_fnmoc_files
+	  exit
+	 else
+	    echo "${fensfile} found continue"
+	 fi
 
+        $WGRIB2 -s $fensfile >fens.ix
         for parm in ${wgrib_parmlist}
         do
           case ${parm} in
